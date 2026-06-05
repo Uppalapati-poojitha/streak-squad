@@ -19,18 +19,24 @@ export const listMyHabits = createServerFn({ method: "GET" })
     const today = new Date().toISOString().slice(0, 10);
     const { data: todayCheckIns } = await supabase
       .from("check_ins")
-      .select("habit_id")
+      .select("habit_id, status")
       .eq("user_id", userId)
       .eq("check_in_date", today);
 
-    const checkedToday = new Set((todayCheckIns ?? []).map((c) => c.habit_id));
+    const verifiedToday = new Set(
+      (todayCheckIns ?? []).filter((c) => c.status === "verified").map((c) => c.habit_id),
+    );
+    const pendingToday = new Set(
+      (todayCheckIns ?? []).filter((c) => c.status === "pending").map((c) => c.habit_id),
+    );
     const streakMap = new Map((streaks ?? []).map((s) => [s.habit_id, s]));
 
     return (habits ?? []).map((h) => ({
       ...h,
       streak: streakMap.get(h.id)?.current_streak ?? 0,
       longest: streakMap.get(h.id)?.longest_streak ?? 0,
-      checkedToday: checkedToday.has(h.id),
+      verifiedToday: verifiedToday.has(h.id),
+      pendingToday: pendingToday.has(h.id),
     }));
   });
 
@@ -53,28 +59,6 @@ export const createHabit = createServerFn({ method: "POST" })
       .single();
     if (error) throw new Error(error.message);
     return row;
-  });
-
-export const performCheckIn = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input) =>
-    z.object({ habit_id: z.string().uuid(), photo_url: z.string().optional() }).parse(input)
-  )
-  .handler(async ({ data, context }) => {
-    const { supabase } = context;
-    const { data: result, error } = await supabase.rpc("perform_check_in", {
-      _habit_id: data.habit_id,
-      _photo_url: data.photo_url,
-    });
-    if (error) throw new Error(error.message);
-    return result as {
-      newStreak: number;
-      milestone: number | null;
-      groupSlug: string | null;
-      groupName: string | null;
-      message: string | null;
-      habitTitle: string;
-    };
   });
 
 export const listPublicChallenges = createServerFn({ method: "GET" })
