@@ -14,13 +14,254 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      check_ins: {
+        Row: {
+          check_in_date: string
+          created_at: string
+          habit_id: string
+          id: string
+          photo_url: string | null
+          user_id: string
+        }
+        Insert: {
+          check_in_date?: string
+          created_at?: string
+          habit_id: string
+          id?: string
+          photo_url?: string | null
+          user_id: string
+        }
+        Update: {
+          check_in_date?: string
+          created_at?: string
+          habit_id?: string
+          id?: string
+          photo_url?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "check_ins_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_memberships: {
+        Row: {
+          group_id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          group_id: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          group_id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_memberships_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_messages: {
+        Row: {
+          author_id: string | null
+          body: string
+          created_at: string
+          group_id: string
+          id: string
+          kind: string
+          payload: Json | null
+        }
+        Insert: {
+          author_id?: string | null
+          body: string
+          created_at?: string
+          group_id: string
+          id?: string
+          kind?: string
+          payload?: Json | null
+        }
+        Update: {
+          author_id?: string | null
+          body?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+          kind?: string
+          payload?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_messages_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          name: string
+          slug: string
+          threshold: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name: string
+          slug: string
+          threshold: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          name?: string
+          slug?: string
+          threshold?: number
+        }
+        Relationships: []
+      }
+      habits: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_public: boolean
+          owner_id: string
+          target_days: number
+          title: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          owner_id: string
+          target_days?: number
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          owner_id?: string
+          target_days?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          payload: Json
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          payload?: Json
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      streaks: {
+        Row: {
+          current_streak: number
+          habit_id: string
+          last_check_in: string | null
+          longest_streak: number
+          user_id: string
+        }
+        Insert: {
+          current_streak?: number
+          habit_id: string
+          last_check_in?: string | null
+          longest_streak?: number
+          user_id: string
+        }
+        Update: {
+          current_streak?: number
+          habit_id?: string
+          last_check_in?: string | null
+          longest_streak?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "streaks_habit_id_fkey"
+            columns: ["habit_id"]
+            isOneToOne: false
+            referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      perform_check_in: {
+        Args: { _habit_id: string; _photo_url?: string }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
