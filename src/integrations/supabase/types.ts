@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      bond_credits_ledger: {
+        Row: {
+          check_in_id: string | null
+          created_at: string
+          delta: number
+          id: string
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          check_in_id?: string | null
+          created_at?: string
+          delta: number
+          id?: string
+          reason: string
+          user_id: string
+        }
+        Update: {
+          check_in_id?: string | null
+          created_at?: string
+          delta?: number
+          id?: string
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       check_ins: {
         Row: {
           check_in_date: string
@@ -21,7 +48,12 @@ export type Database = {
           habit_id: string
           id: string
           photo_url: string | null
+          score: number | null
+          status: string
+          submission: Json
           user_id: string
+          verification: Json | null
+          verified_at: string | null
         }
         Insert: {
           check_in_date?: string
@@ -29,7 +61,12 @@ export type Database = {
           habit_id: string
           id?: string
           photo_url?: string | null
+          score?: number | null
+          status?: string
+          submission?: Json
           user_id: string
+          verification?: Json | null
+          verified_at?: string | null
         }
         Update: {
           check_in_date?: string
@@ -37,7 +74,12 @@ export type Database = {
           habit_id?: string
           id?: string
           photo_url?: string | null
+          score?: number | null
+          status?: string
+          submission?: Json
           user_id?: string
+          verification?: Json | null
+          verified_at?: string | null
         }
         Relationships: [
           {
@@ -221,6 +263,68 @@ export type Database = {
         }
         Relationships: []
       }
+      reward_redemptions: {
+        Row: {
+          id: string
+          payload: Json | null
+          redeemed_at: string
+          reward_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          payload?: Json | null
+          redeemed_at?: string
+          reward_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          payload?: Json | null
+          redeemed_at?: string
+          reward_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reward_redemptions_reward_id_fkey"
+            columns: ["reward_id"]
+            isOneToOne: false
+            referencedRelation: "rewards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rewards: {
+        Row: {
+          cost_credits: number
+          created_at: string
+          description: string
+          id: string
+          kind: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          cost_credits: number
+          created_at?: string
+          description: string
+          id?: string
+          kind?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          cost_credits?: number
+          created_at?: string
+          description?: string
+          id?: string
+          kind?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       streaks: {
         Row: {
           current_streak: number
@@ -253,14 +357,55 @@ export type Database = {
           },
         ]
       }
+      user_stats: {
+        Row: {
+          level: number
+          lifetime_credits: number
+          total_credits: number
+          updated_at: string
+          user_id: string
+          verifications_failed: number
+          verifications_passed: number
+          xp: number
+        }
+        Insert: {
+          level?: number
+          lifetime_credits?: number
+          total_credits?: number
+          updated_at?: string
+          user_id: string
+          verifications_failed?: number
+          verifications_passed?: number
+          xp?: number
+        }
+        Update: {
+          level?: number
+          lifetime_credits?: number
+          total_credits?: number
+          updated_at?: string
+          user_id?: string
+          verifications_failed?: number
+          verifications_passed?: number
+          xp?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      perform_check_in: {
-        Args: { _habit_id: string; _photo_url?: string }
+      complete_verification: {
+        Args: { _answers: Json; _check_in_id: string }
         Returns: Json
+      }
+      redeem_reward: {
+        Args: { _payload?: Json; _reward_id: string }
+        Returns: Json
+      }
+      start_check_in: {
+        Args: { _habit_id: string; _questions: Json; _submission: Json }
+        Returns: string
       }
     }
     Enums: {

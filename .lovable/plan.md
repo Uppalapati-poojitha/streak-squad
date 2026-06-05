@@ -1,112 +1,84 @@
 
-# ConsistencyOS — Plan
+# Proof-Based Verification + Reward Economy
 
-A dark, mobile-first habit-streak app where **the entire UI is built as a vertical flow diagram**: every screen visualizes actions cascading down through nodes connected by arrows, just like the reference flow:
+Big feature set. Shipping in 3 phases so each phase is usable on its own. All UI stays in the existing vertical Flow style (FlowNode + animated arrows) and the dark Midnight Indigo palette — we're adding nodes and screens, not redesigning.
 
-```text
-Venu checks in at gym
-        │
-        ▼
-Streak becomes 24 days
-        │
-        ▼
-Achievement detected
-        │
-        ▼
-Notification sent to group
-        │
-        ▼
-🔥 Venu completed Day 24 of his gym streak!
-```
+## Phase 1 — Verification engine + Bond Credits (core)
 
-## Core visual system (the "Flow" component)
+The blocker. Without this, nothing else matters.
 
-A reusable `<Flow>` primitive renders a vertical stack of `<FlowNode>` cards connected by animated SVG arrow segments. Each node has:
-- icon chip (left), title, optional subtitle/metric, optional action button
-- state: `pending` (dimmed), `active` (mint glow + pulse), `done` (solid indigo)
-- arrow below: draws in with `pathLength` animation when the next node activates
+### Data model (one migration)
+- `check_ins`: add `status` (`pending` | `verified` | `rejected`), `submission jsonb` (per-habit proof fields), `verification jsonb` (questions + answers + score), `verified_at`
+- `bond_credits_ledger(id, user_id, delta, reason, check_in_id?, created_at)` — append-only; balance = SUM(delta)
+- `user_stats(user_id, total_credits, xp, level, verifications_passed, verifications_failed)` — kept in sync by a trigger on the ledger
+- `daily_missions(id, user_id, date, kind, target, progress, completed)` + `weekly_missions` (same shape, week start date)
+- `rewards(id, slug, name, description, cost_credits, kind)` — seeded with "AI Resume Builder" (1000)
+- `reward_redemptions(id, user_id, reward_id, redeemed_at, payload jsonb)`
+- Rewrite `perform_check_in` RPC: only **creates** a pending check-in + returns a question set; **does NOT** touch streaks/credits
+- New `complete_verification(check_in_id, answers[])` RPC: scores answers, if ≥ 3/5 → mark verified, update streak, award credits (10 base + milestone bonuses 50@7d / 200@30d / 500@100d), insert ledger row, fan out group notification (existing milestone logic)
+- All tables: RLS scoped to `auth.uid()` + GRANTs (authenticated + service_role)
 
-Every major screen is composed of Flow nodes — not traditional cards/lists.
+### Server functions (`createServerFn`)
+- `startCheckIn({ habit_id, submission })` → returns `{ check_in_id, questions: [{id, prompt, choices}] }`
+- `submitVerification({ check_in_id, answers })` → returns `{ status, score, creditsAwarded, newStreak, milestone, message }`
+- `getMyEconomy()` → balance, level, xp, today's earnings, recent ledger, pending verifications count, verification success rate
+- `listMissions()`, `getRewards()`, `redeemReward({ reward_id, payload })`
 
-## Palette
-Midnight Indigo: bg `#0a0a1a`, surface `#141432`, indigo `#4f46e5`, mint accent `#2dd4a8`, fire orange `#ff6b35` for streak/achievement nodes.
+### Question generation
+Use Lovable AI Gateway (`google/gemini-2.5-flash`, JSON response) inside `startCheckIn`. Prompt is per-category and seeded with the user's submission:
+- **Reading**: book/article + pages/minutes → comprehension questions on the topic
+- **Coding**: repo URL + snippet → questions on what the code does, language, patterns
+- **Running**: distance + duration + screenshot URL → pace, route, perceived effort questions
+- **Gym**: exercises list + photo → form/sets/reps questions
+- **Meditation**: minutes + type → reflection questions ("what arose", "anchor used")
 
-## Screens (all as flows)
+Each question is multiple choice (4 options, 1 correct) for deterministic scoring. AI returns `{questions:[{prompt, choices, correctIndex}]}`. We store `correctIndex` server-side only and never ship it to the client.
 
-### Landing `/`
-The hero IS the reference flow above, animated on loop. Below: a second flow showing "Sign up → Pick a habit → Check in daily → Join the club".
+### UI (frontend-only, Flow-style)
+- **Home check-in flow** — clicking "Check in" no longer instantly completes. New nodes animate in:
+  1. Submission form node (fields depend on habit category)
+  2. "Generating questions…" node (pulse)
+  3. 5 question nodes, one at a time (MC, tap to answer)
+  4. Result node: ✅ Verified (+credits, streak, milestone) OR ❌ Rejected (score, retry tomorrow)
+- **Persistent top bar in AppShell**: Bond Credits counter (animated count-up) + XP bar + level chip
+- **`/economy` route**: Flow of [Balance node] → [Today's earnings] → [Ledger nodes (last 20)] → [Success rate]
+- **`/missions` route**: Daily + weekly missions as FlowNodes with progress bars
+- **Pending verifications** node on Home if any check-ins are stuck in `pending`
 
-### Home `/_authenticated/home`
-Today's flow for the user:
-```text
-[Today, Friday]
-   │
-   ▼
-[Gym]  Day 23 streak  → [ Check in ] button
-   │
-   ▼
-[Reading]  Day 7 streak  → [ Check in ] button
-   │
-   ▼
-[Your next milestone: Day 30 — 7 days to go]
-```
-Tapping Check in flips that node to `done`, the arrow below extends, and new nodes animate in: "Streak → Day 24" → "Achievement detected" → "Notification sent to 30-Day Club" → message card. Exact mirror of the reference flow, played live.
+## Phase 2 — Rewards Marketplace + AI Resume Builder
 
-### Habit detail `/_authenticated/habits/$id`
-Flow: habit header → contribution-grid node (GitHub-style 90 days) → current-streak node → recent check-ins sub-flow → next milestone node.
+- `/rewards` route: Flow of reward nodes, each with cost + [Redeem] (disabled until balance ≥ cost)
+- Redeeming "AI Resume Builder" unlocks `/rewards/resume`:
+  - Flow form: Name → Education → Skills → Projects → Experience (one node per step)
+  - On submit, Lovable AI generates ATS-friendly resume content (JSON → React template)
+  - "Download PDF" via client-side `react-to-print` / `jspdf` (no native deps)
+  - 3 template variants (Minimal, Modern, Classic) — picked as a FlowNode choice
+- Redemption deducts credits via ledger row (`delta = -1000`) inside a single RPC
 
-### Challenges `/_authenticated/challenges`
-Flow of joinable public habits, each a node with [Join] action.
+## Phase 3 — Gamification polish + anti-cheat hardening
 
-### Groups list `/_authenticated/groups`
-Flow of clubs the user belongs to, each node showing member count + latest activity.
+- XP system: every verified check-in = 25 XP, milestone bonuses; level thresholds (0/100/250/500/1000 credits earned all-time, then +1000 per level)
+- Achievement unlock screen: full-screen FlowNode burst with confetti (CSS keyframes, no new deps) on level-up / milestone / reward unlock
+- Verification accuracy score on profile
+- Anti-cheat:
+  - Unique constraint `(habit_id, user_id, check_in_date)` already exists — blocks duplicates
+  - Pending check-ins expire after 30 min (cron-free: checked lazily on next `startCheckIn`)
+  - Rate limit: max 1 in-flight pending check-in per habit
+  - Question `correctIndex` never leaves the server
+  - Submission hashes (repo URL, photo URL) stored to flag re-use
 
-### Group page `/_authenticated/groups/$slug`
-Flow feed: every message (system or member) is a node connected by arrows in chronological order. Composer at bottom adds a new node.
+## Technical notes
+- All new server logic in `src/lib/verification.functions.ts`, `economy.functions.ts`, `rewards.functions.ts` — protected by `requireSupabaseAuth`
+- AI calls use `LOVABLE_API_KEY` (already in secrets), `google/gemini-2.5-flash` with `response_format: json_object`
+- Photo/screenshot uploads → new `proofs` private bucket, signed URLs
+- Realtime: subscribe `bond_credits_ledger` to live-update the top-bar counter
+- No new heavy deps; PDF generation via `jspdf` (Worker-safe, pure JS)
 
-### Inbox `/_authenticated/inbox`
-Flow of notifications top-to-bottom; tapping jumps to the matching node in the source group.
+## Out of scope for this rollout
+- Human moderation of verifications
+- Image-content verification (we trust the photo exists; AI questions test recall, not authenticity)
+- Marketplace beyond the Resume Builder reward (one reward seeded; framework supports more)
 
-### Profile `/_authenticated/profile/$username`
-Flow: avatar+stats → habits → badges → clubs joined.
+---
 
-### Auth `/auth`
-Single-column flow: "Welcome → Sign in → Pick first habit".
-
-## Features (rendered as flows)
-
-1. **Auth** — Google (via Lovable broker) + email/password
-2. **Habits** — create with category (Gym/Run/Code/Read/Meditate/Fast/Custom), target_days, public/private
-3. **Daily check-in** — one-click, optional photo proof, triggers the animated flow
-4. **Streaks** — current + longest, contribution grid
-5. **Leaderboard** — weekly/monthly tabs (ranked flow)
-6. **Badges** — auto-awarded at 7/30/100/365
-7. **Achievement-triggered groups** — milestone clubs auto-join + system message + fan-out notifications, atomic in one Postgres function
-8. **In-app notifications** — bell with unread count, realtime via Supabase
-
-## Technical details
-
-**Stack**: TanStack Start v1, React 19, Tailwind v4, Lovable Cloud, Motion (framer-motion) for node/arrow animations, Supabase Realtime for messages + notifications.
-
-**`<Flow>` component**: `src/components/flow/Flow.tsx`, `FlowNode.tsx`, `FlowArrow.tsx` (SVG with `motion.path` `pathLength` 0→1). Used on every screen.
-
-**Tables** (RLS + GRANTs to `authenticated`, `service_role`):
-- `profiles(id, username, display_name, avatar_url)`
-- `habits(id, owner_id, title, category, target_days, is_public, created_at)`
-- `habit_members(habit_id, user_id, joined_at)`
-- `check_ins(id, habit_id, user_id, check_in_date, photo_url, created_at)` UNIQUE(habit_id, user_id, check_in_date)
-- `streaks(user_id, habit_id, current_streak, longest_streak, last_check_in)`
-- `badges(id, user_id, kind, habit_id, awarded_at)`
-- `groups(id, slug, name, kind, threshold)` — seeded 7/30/100/365 clubs
-- `group_memberships(group_id, user_id, joined_at)`
-- `group_messages(id, group_id, author_id NULL=system, kind, body, payload jsonb, created_at)`
-- `notifications(id, user_id, kind, payload jsonb, read_at, created_at)`
-
-**Server logic**: `createServerFn` for all writes. The check-in serverFn calls one `SECURITY DEFINER` Postgres function that atomically: recomputes streak → detects milestone → joins group → inserts system message → fans out notifications → returns `{ newStreak, milestoneCrossed, groupSlug, messageBody }` so the client plays the flow animation with real data.
-
-**Storage**: `proofs` (private, signed URLs), `avatars` (public).
-
-**Routes**: `/`, `/auth`, `/_authenticated/{home, habits/$id, challenges, leaderboard, groups, groups/$slug, inbox, profile/$username}`.
-
-## Out of scope (v1)
-Email/push delivery, global social feed, AI features, workout planning.
+**Recommendation: ship Phase 1 first** (verification + credits + the new check-in flow + top bar). That alone delivers the core "earn streaks, don't self-report" value. Reply with **"go phase 1"** to start, or tell me to adjust scope.
