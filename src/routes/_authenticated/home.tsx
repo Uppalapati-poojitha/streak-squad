@@ -1,14 +1,15 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Flame, Plus, Dumbbell, BookOpen, Brain, Code, Footprints, UtensilsCrossed, Sparkles, X } from "lucide-react";
+import { Flame, Plus, Dumbbell, BookOpen, Brain, Code, Footprints, UtensilsCrossed, Sparkles, X, Clock } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/AppShell";
 import { Flow } from "@/components/flow/Flow";
 import { FlowNode } from "@/components/flow/FlowNode";
-import { listMyHabits, createHabit, performCheckIn } from "@/lib/habits.functions";
+import { CheckInModal } from "@/components/CheckInModal";
+import { listMyHabits, createHabit } from "@/lib/habits.functions";
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: HomePage,
@@ -24,102 +25,98 @@ const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
   custom: Sparkles,
 };
 
+type HabitRow = Awaited<ReturnType<typeof listMyHabits>>[number];
+
 function HomePage() {
-  const qc = useQueryClient();
   const { data: habits = [], isLoading } = useQuery({
     queryKey: ["habits"],
     queryFn: () => listMyHabits(),
   });
   const [creating, setCreating] = useState(false);
-  const [celebration, setCelebration] = useState<null | Awaited<ReturnType<typeof performCheckIn>>>(null);
-
-  const checkInMut = useMutation({
-    mutationFn: (habit_id: string) => performCheckIn({ data: { habit_id } }),
-    onSuccess: (result) => {
-      qc.invalidateQueries({ queryKey: ["habits"] });
-      qc.invalidateQueries({ queryKey: ["notifications"] });
-      if (result.milestone) setCelebration(result);
-      else toast.success(`Day ${result.newStreak} of ${result.habitTitle} 🔥`);
-    },
-    onError: (e: any) => toast.error(e.message ?? "Check-in failed"),
-  });
+  const [verifying, setVerifying] = useState<HabitRow | null>(null);
 
   const today = new Date().toLocaleDateString(undefined, { weekday: "long", month: "short", day: "numeric" });
+  const doneCount = habits.filter((h) => h.verifiedToday).length;
 
   return (
     <AppShell title="Today's flow">
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading your flow…</p>
       ) : (
-        <>
-          <Flow>
-            <FlowNode
-              state="done"
-              icon={<Flame className="h-5 w-5" />}
-              title={today}
-              subtitle={`${habits.filter((h) => h.checkedToday).length} of ${habits.length} done`}
-            />
+        <Flow>
+          <FlowNode
+            state="done"
+            icon={<Flame className="h-5 w-5" />}
+            title={today}
+            subtitle={`${doneCount} of ${habits.length} verified`}
+          />
 
-            {habits.length === 0 ? (
-              <FlowNode
-                state="pending"
-                icon={<Plus className="h-5 w-5" />}
-                title="No habits yet"
-                subtitle="Add your first habit to start a streak"
-                action={
-                  <button
-                    onClick={() => setCreating(true)}
-                    className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
-                  >
-                    Add
-                  </button>
-                }
-              />
-            ) : (
-              habits.map((h) => {
-                const Icon = ICONS[h.category] ?? Sparkles;
-                return (
-                  <FlowNode
-                    key={h.id}
-                    state={h.checkedToday ? "done" : h.streak >= 7 ? "fire" : "active"}
-                    icon={<Icon className="h-5 w-5" />}
-                    title={h.title}
-                    subtitle={
-                      h.streak > 0
-                        ? `Day ${h.streak} streak · longest ${h.longest}`
-                        : "Start your streak today"
-                    }
-                    action={
-                      h.checkedToday ? (
-                        <span className="rounded-full bg-mint/15 px-3 py-1.5 text-xs font-semibold text-mint">Done</span>
-                      ) : (
-                        <button
-                          disabled={checkInMut.isPending}
-                          onClick={() => checkInMut.mutate(h.id)}
-                          className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90 disabled:opacity-50"
-                        >
-                          Check in
-                        </button>
-                      )
-                    }
-                  />
-                );
-              })
-            )}
-
+          {habits.length === 0 ? (
             <FlowNode
               state="pending"
               icon={<Plus className="h-5 w-5" />}
-              title="Add another habit"
-              onClick={() => setCreating(true)}
+              title="No habits yet"
+              subtitle="Add your first habit to start a streak"
+              action={
+                <button
+                  onClick={() => setCreating(true)}
+                  className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
+                >
+                  Add
+                </button>
+              }
             />
-          </Flow>
-        </>
+          ) : (
+            habits.map((h) => {
+              const Icon = ICONS[h.category] ?? Sparkles;
+              const state = h.verifiedToday ? "done" : h.pendingToday ? "active" : h.streak >= 7 ? "fire" : "active";
+              return (
+                <FlowNode
+                  key={h.id}
+                  state={state}
+                  icon={<Icon className="h-5 w-5" />}
+                  title={h.title}
+                  subtitle={
+                    h.streak > 0
+                      ? `Day ${h.streak} streak · longest ${h.longest}`
+                      : "Earn your first day"
+                  }
+                  action={
+                    h.verifiedToday ? (
+                      <span className="rounded-full bg-mint/15 px-3 py-1.5 text-xs font-semibold text-mint">Verified</span>
+                    ) : h.pendingToday ? (
+                      <button
+                        onClick={() => setVerifying(h)}
+                        className="flex items-center gap-1 rounded-full bg-fire/15 px-3 py-1.5 text-xs font-semibold text-fire"
+                      >
+                        <Clock className="h-3 w-3" /> Resume
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setVerifying(h)}
+                        className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+                      >
+                        Check in
+                      </button>
+                    )
+                  }
+                />
+              );
+            })
+          )}
+
+          <FlowNode
+            state="pending"
+            icon={<Plus className="h-5 w-5" />}
+            title="Add another habit"
+            onClick={() => setCreating(true)}
+          />
+        </Flow>
       )}
 
       <AnimatePresence>
         {creating && <CreateHabitModal onClose={() => setCreating(false)} />}
-        {celebration && <MilestoneModal data={celebration} onClose={() => setCelebration(null)} />}
+        {verifying && <CheckInModal habit={verifying} onClose={() => setVerifying(null)} />}
       </AnimatePresence>
     </AppShell>
   );
@@ -215,55 +212,6 @@ function CreateHabitModal({ onClose }: { onClose: () => void }) {
             className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground disabled:opacity-50"
           >
             Create habit
-          </button>
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
-function MilestoneModal({ data, onClose }: { data: Awaited<ReturnType<typeof performCheckIn>>; onClose: () => void }) {
-  const nav = useNavigate();
-  return (
-    <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"
-    >
-      <motion.div
-        initial={{ scale: 0.9, y: 20, opacity: 0 }} animate={{ scale: 1, y: 0, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-3xl border border-fire/40 bg-surface p-6 glow-fire"
-      >
-        <div className="text-center">
-          <motion.div
-            initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.2, type: "spring" }}
-            className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-fire/20 text-3xl"
-          >
-            🔥
-          </motion.div>
-          <h2 className="font-display text-2xl font-bold">Day {data.newStreak} unlocked!</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{data.habitTitle}</p>
-        </div>
-
-        <div className="mt-6">
-          <Flow>
-            <FlowNode state="done" delay={0.3} icon={<Flame className="h-5 w-5" />} title={`Streak → Day ${data.newStreak}`} />
-            <FlowNode state="fire" delay={0.6} icon={<Sparkles className="h-5 w-5" />} title="Achievement detected" subtitle={`${data.milestone}-day milestone`} />
-            <FlowNode state="done" delay={0.9} icon={<Flame className="h-5 w-5" />} title={`Joined ${data.groupName}`} subtitle="Auto-membership" />
-            <FlowNode state="done" delay={1.2} icon={<Flame className="h-5 w-5" />} title={data.message ?? ""} subtitle="Sent to your club" />
-          </Flow>
-        </div>
-
-        <div className="mt-6 flex gap-2">
-          <button onClick={onClose} className="flex-1 rounded-xl border border-border bg-background py-3 text-sm font-semibold">
-            Close
-          </button>
-          <button
-            onClick={() => { onClose(); if (data.groupSlug) nav({ to: "/groups/$slug", params: { slug: data.groupSlug } }); }}
-            className="flex-1 rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground"
-          >
-            Visit club
           </button>
         </div>
       </motion.div>
