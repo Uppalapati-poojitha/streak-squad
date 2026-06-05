@@ -64,7 +64,7 @@ export const performCheckIn = createServerFn({ method: "POST" })
     const { supabase } = context;
     const { data: result, error } = await supabase.rpc("perform_check_in", {
       _habit_id: data.habit_id,
-      _photo_url: data.photo_url ?? null,
+      _photo_url: data.photo_url,
     });
     if (error) throw new Error(error.message);
     return result as {
