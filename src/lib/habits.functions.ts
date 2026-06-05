@@ -58,7 +58,7 @@ export const createHabit = createServerFn({ method: "POST" })
 export const performCheckIn = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    z.object({ habit_id: z.string().uuid(), photo_url: z.string().optional().nullable() }).parse(input)
+    z.object({ habit_id: z.string().uuid(), photo_url: z.string().optional() }).parse(input)
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
