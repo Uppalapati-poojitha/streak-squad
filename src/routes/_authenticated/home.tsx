@@ -42,10 +42,14 @@ function HomePage() {
 
   return (
     <AppShell title="Today's flow">
+      <div className="mb-4">
+        <DailyRewardBox />
+      </div>
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading your flow…</p>
       ) : (
         <Flow>
+
           <FlowNode
             state="done"
             icon={<Flame className="h-5 w-5" />}
