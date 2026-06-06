@@ -882,6 +882,7 @@ export type Database = {
         Args: { _payload?: Json; _reward_id: string }
         Returns: Json
       }
+      seed_today_missions: { Args: never; Returns: undefined }
       start_check_in: {
         Args: { _habit_id: string; _questions: Json; _submission: Json }
         Returns: string
