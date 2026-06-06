@@ -2,20 +2,10 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const SEED_MISSIONS = [
-  { kind: "verify_one", title: "Verify 1 check-in", description: "Complete any AI-verified check-in today", target: 1, reward_credits: 15, reward_xp: 30 },
-  { kind: "perfect_score", title: "Score 5/5", description: "Get a perfect score on a verification quiz", target: 1, reward_credits: 25, reward_xp: 50 },
-  { kind: "verify_two_categories", title: "Two categories", description: "Verify check-ins in 2 different categories", target: 2, reward_credits: 30, reward_xp: 60 },
-];
-
 async function ensureTodayMissions(supabase: any) {
-  const today = new Date().toISOString().slice(0, 10);
-  const { data: existing } = await supabase.from("daily_missions").select("id").eq("mission_date", today);
-  if ((existing ?? []).length >= SEED_MISSIONS.length) return;
-  for (const m of SEED_MISSIONS) {
-    await supabase.from("daily_missions").insert({ ...m, mission_date: today });
-  }
+  await supabase.rpc("seed_today_missions");
 }
+
 
 export const getTodayMissions = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
