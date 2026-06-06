@@ -29,12 +29,21 @@ export const getClub = createServerFn({ method: "GET" })
       .maybeSingle();
     if (!membership) throw new Error("Not a member of this club");
 
-    const [{ data: messages }, { data: members }, { data: feed }, { data: champions }] = await Promise.all([
+    const [{ data: messages }, { data: rawMembers }, { data: feed }, { data: champions }] = await Promise.all([
       supabase.from("group_messages").select("*").eq("group_id", club.id).order("created_at", { ascending: true }).limit(100),
-      supabase.from("group_memberships").select("user_id, joined_at, profile:profiles!group_memberships_user_id_fkey(id, display_name, username, avatar_url)").eq("group_id", club.id),
+      supabase.from("group_memberships").select("user_id, joined_at").eq("group_id", club.id),
       supabase.from("club_feed_items").select("*").eq("club_id", club.id).order("created_at", { ascending: false }).limit(50),
       supabase.from("weekly_champions").select("*").eq("club_id", club.id).order("week_start", { ascending: false }).limit(10),
     ]);
+
+    const memberIdsAll = (rawMembers ?? []).map((m) => m.user_id);
+    const { data: memberProfiles } = memberIdsAll.length
+      ? await supabase.from("profiles").select("id, display_name, username, avatar_url").in("id", memberIdsAll)
+      : { data: [] as any[] };
+    const profileMap = new Map((memberProfiles ?? []).map((p: any) => [p.id, p]));
+    const members = (rawMembers ?? []).map((m) => ({ ...m, profile: profileMap.get(m.user_id) ?? null }));
+
+
 
     // Leaderboard: top 10 members by category streak
     const memberIds = (members ?? []).map((m: any) => m.user_id);
