@@ -2,37 +2,36 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000];
+const LEVEL_THRESHOLDS = [0, 100, 250, 500, 1000, 2500, 5000];
+
+export const CATEGORIES = ["coding", "reading", "gym", "running", "meditation", "fasting", "custom"] as const;
+export type Category = (typeof CATEGORIES)[number];
 
 export const getMyEconomy = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
 
-    const { data: stats } = await supabase
-      .from("user_stats")
-      .select("*")
-      .eq("user_id", userId)
-      .maybeSingle();
+    const [{ data: stats }, { data: cats }, { data: ledger }, { count: pendingCount }] = await Promise.all([
+      supabase.from("user_stats").select("*").eq("user_id", userId).maybeSingle(),
+      supabase.from("user_category_credits").select("*").eq("user_id", userId),
+      supabase.from("bond_credits_ledger").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(50),
+      supabase.from("check_ins").select("*", { count: "exact", head: true }).eq("user_id", userId).eq("status", "pending"),
+    ]);
+
+    const byCategory: Record<string, { balance: number; lifetime: number }> = {};
+    for (const c of CATEGORIES) byCategory[c] = { balance: 0, lifetime: 0 };
+    for (const row of cats ?? []) {
+      byCategory[row.category] = { balance: row.balance, lifetime: row.lifetime };
+    }
+
+    const totalBalance = Object.values(byCategory).reduce((s, x) => s + x.balance, 0);
 
     const todayStart = new Date();
     todayStart.setUTCHours(0, 0, 0, 0);
-    const { data: ledger } = await supabase
-      .from("bond_credits_ledger")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(50);
-
     const earnedToday = (ledger ?? [])
       .filter((l) => new Date(l.created_at) >= todayStart && l.delta > 0)
       .reduce((sum, l) => sum + l.delta, 0);
-
-    const { count: pendingCount } = await supabase
-      .from("check_ins")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("status", "pending");
 
     const lifetime = stats?.lifetime_credits ?? 0;
     const level = stats?.level ?? 1;
@@ -46,7 +45,8 @@ export const getMyEconomy = createServerFn({ method: "GET" })
       : 100;
 
     return {
-      balance: stats?.total_credits ?? 0,
+      balance: totalBalance,
+      byCategory,
       lifetime,
       level,
       xp: stats?.xp ?? 0,
@@ -65,14 +65,8 @@ export const listRewards = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const { data: rewards } = await supabase
-      .from("rewards")
-      .select("*")
-      .order("cost_credits", { ascending: true });
-    const { data: redemptions } = await supabase
-      .from("reward_redemptions")
-      .select("reward_id")
-      .eq("user_id", userId);
+    const { data: rewards } = await supabase.from("rewards").select("*").order("cost_credits", { ascending: true });
+    const { data: redemptions } = await supabase.from("reward_redemptions").select("reward_id").eq("user_id", userId);
     const owned = new Set((redemptions ?? []).map((r) => r.reward_id));
     return (rewards ?? []).map((r) => ({ ...r, owned: owned.has(r.id) }));
   });
