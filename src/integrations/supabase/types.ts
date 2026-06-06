@@ -14,8 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      achievements: {
+        Row: {
+          created_at: string
+          description: string
+          icon: string
+          id: string
+          name: string
+          reward_credits: number
+          reward_xp: number
+          slug: string
+          tier: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          icon?: string
+          id?: string
+          name: string
+          reward_credits?: number
+          reward_xp?: number
+          slug: string
+          tier?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          icon?: string
+          id?: string
+          name?: string
+          reward_credits?: number
+          reward_xp?: number
+          slug?: string
+          tier?: string
+        }
+        Relationships: []
+      }
       bond_credits_ledger: {
         Row: {
+          category: Database["public"]["Enums"]["habit_category"] | null
           check_in_id: string | null
           created_at: string
           delta: number
@@ -24,6 +61,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          category?: Database["public"]["Enums"]["habit_category"] | null
           check_in_id?: string | null
           created_at?: string
           delta: number
@@ -32,6 +70,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          category?: Database["public"]["Enums"]["habit_category"] | null
           check_in_id?: string | null
           created_at?: string
           delta?: number
@@ -91,6 +130,162 @@ export type Database = {
           },
         ]
       }
+      club_feed_items: {
+        Row: {
+          club_id: string
+          created_at: string
+          id: string
+          kind: string
+          payload: Json
+          user_id: string | null
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          payload?: Json
+          user_id?: string | null
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_feed_items_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      daily_missions: {
+        Row: {
+          category: Database["public"]["Enums"]["habit_category"] | null
+          created_at: string
+          description: string
+          id: string
+          kind: string
+          mission_date: string
+          reward_credits: number
+          reward_xp: number
+          target: number
+          title: string
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["habit_category"] | null
+          created_at?: string
+          description: string
+          id?: string
+          kind: string
+          mission_date: string
+          reward_credits?: number
+          reward_xp?: number
+          target?: number
+          title: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["habit_category"] | null
+          created_at?: string
+          description?: string
+          id?: string
+          kind?: string
+          mission_date?: string
+          reward_credits?: number
+          reward_xp?: number
+          target?: number
+          title?: string
+        }
+        Relationships: []
+      }
+      daily_reward_box: {
+        Row: {
+          claim_date: string
+          claimed_at: string
+          id: string
+          reward: Json
+          user_id: string
+        }
+        Insert: {
+          claim_date: string
+          claimed_at?: string
+          id?: string
+          reward: Json
+          user_id: string
+        }
+        Update: {
+          claim_date?: string
+          claimed_at?: string
+          id?: string
+          reward?: Json
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feed_comments: {
+        Row: {
+          body: string
+          created_at: string
+          feed_item_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          feed_item_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          feed_item_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_comments_feed_item_id_fkey"
+            columns: ["feed_item_id"]
+            isOneToOne: false
+            referencedRelation: "club_feed_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_likes: {
+        Row: {
+          created_at: string
+          feed_item_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          feed_item_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          feed_item_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_likes_feed_item_id_fkey"
+            columns: ["feed_item_id"]
+            isOneToOne: false
+            referencedRelation: "club_feed_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       group_memberships: {
         Row: {
           group_id: string
@@ -126,6 +321,9 @@ export type Database = {
           id: string
           kind: string
           payload: Json | null
+          pinned: boolean
+          reactions: Json
+          reply_to_id: string | null
         }
         Insert: {
           author_id?: string | null
@@ -135,6 +333,9 @@ export type Database = {
           id?: string
           kind?: string
           payload?: Json | null
+          pinned?: boolean
+          reactions?: Json
+          reply_to_id?: string | null
         }
         Update: {
           author_id?: string | null
@@ -144,6 +345,9 @@ export type Database = {
           id?: string
           kind?: string
           payload?: Json | null
+          pinned?: boolean
+          reactions?: Json
+          reply_to_id?: string | null
         }
         Relationships: [
           {
@@ -153,10 +357,18 @@ export type Database = {
             referencedRelation: "groups"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "group_messages_reply_to_id_fkey"
+            columns: ["reply_to_id"]
+            isOneToOne: false
+            referencedRelation: "group_messages"
+            referencedColumns: ["id"]
+          },
         ]
       }
       groups: {
         Row: {
+          category: Database["public"]["Enums"]["habit_category"] | null
           created_at: string
           id: string
           kind: string
@@ -165,6 +377,7 @@ export type Database = {
           threshold: number
         }
         Insert: {
+          category?: Database["public"]["Enums"]["habit_category"] | null
           created_at?: string
           id?: string
           kind?: string
@@ -173,6 +386,7 @@ export type Database = {
           threshold: number
         }
         Update: {
+          category?: Database["public"]["Enums"]["habit_category"] | null
           created_at?: string
           id?: string
           kind?: string
@@ -211,6 +425,35 @@ export type Database = {
           title?: string
         }
         Relationships: []
+      }
+      message_reactions: {
+        Row: {
+          created_at: string
+          emoji: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          emoji: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          emoji?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_reactions_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "group_messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       notifications: {
         Row: {
@@ -325,6 +568,39 @@ export type Database = {
         }
         Relationships: []
       }
+      shields: {
+        Row: {
+          category: Database["public"]["Enums"]["habit_category"]
+          cost_credits: number
+          created_at: string
+          id: string
+          kind: string
+          missed_days_protected: number
+          slug: string
+          validity_days: number
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["habit_category"]
+          cost_credits: number
+          created_at?: string
+          id?: string
+          kind: string
+          missed_days_protected: number
+          slug: string
+          validity_days: number
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["habit_category"]
+          cost_credits?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          missed_days_protected?: number
+          slug?: string
+          validity_days?: number
+        }
+        Relationships: []
+      }
       streaks: {
         Row: {
           current_streak: number
@@ -353,6 +629,168 @@ export type Database = {
             columns: ["habit_id"]
             isOneToOne: false
             referencedRelation: "habits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_achievements: {
+        Row: {
+          achievement_id: string
+          id: string
+          unlocked_at: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          id?: string
+          unlocked_at?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          id?: string
+          unlocked_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_category_credits: {
+        Row: {
+          balance: number
+          category: Database["public"]["Enums"]["habit_category"]
+          lifetime: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          category: Database["public"]["Enums"]["habit_category"]
+          lifetime?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          category?: Database["public"]["Enums"]["habit_category"]
+          lifetime?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_mission_progress: {
+        Row: {
+          claimed_at: string | null
+          completed_at: string | null
+          id: string
+          mission_id: string
+          progress: number
+          user_id: string
+        }
+        Insert: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          id?: string
+          mission_id: string
+          progress?: number
+          user_id: string
+        }
+        Update: {
+          claimed_at?: string | null
+          completed_at?: string | null
+          id?: string
+          mission_id?: string
+          progress?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_mission_progress_mission_id_fkey"
+            columns: ["mission_id"]
+            isOneToOne: false
+            referencedRelation: "daily_missions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_resumes: {
+        Row: {
+          created_at: string
+          id: string
+          payload: Json
+          template: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payload: Json
+          template?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payload?: Json
+          template?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_shields: {
+        Row: {
+          category: Database["public"]["Enums"]["habit_category"]
+          expires_at: string
+          id: string
+          purchased_at: string
+          shield_id: string
+          status: string
+          used_at: string | null
+          used_for_date: string | null
+          used_for_habit_id: string | null
+          user_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["habit_category"]
+          expires_at: string
+          id?: string
+          purchased_at?: string
+          shield_id: string
+          status?: string
+          used_at?: string | null
+          used_for_date?: string | null
+          used_for_habit_id?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["habit_category"]
+          expires_at?: string
+          id?: string
+          purchased_at?: string
+          shield_id?: string
+          status?: string
+          used_at?: string | null
+          used_for_date?: string | null
+          used_for_habit_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_shields_shield_id_fkey"
+            columns: ["shield_id"]
+            isOneToOne: false
+            referencedRelation: "shields"
             referencedColumns: ["id"]
           },
         ]
@@ -390,26 +828,83 @@ export type Database = {
         }
         Relationships: []
       }
+      weekly_champions: {
+        Row: {
+          club_id: string
+          created_at: string
+          id: string
+          metric: string
+          user_id: string
+          value: number
+          week_start: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          id?: string
+          metric: string
+          user_id: string
+          value: number
+          week_start: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          id?: string
+          metric?: string
+          user_id?: string
+          value?: number
+          week_start?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_champions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      claim_daily_box: { Args: never; Returns: Json }
       complete_verification: {
         Args: { _answers: Json; _check_in_id: string }
         Returns: Json
       }
+      expire_shields: { Args: never; Returns: number }
+      purchase_shield: { Args: { _shield_id: string }; Returns: Json }
       redeem_reward: {
         Args: { _payload?: Json; _reward_id: string }
         Returns: Json
       }
+      seed_today_missions: { Args: never; Returns: undefined }
       start_check_in: {
         Args: { _habit_id: string; _questions: Json; _submission: Json }
         Returns: string
       }
+      use_shield: {
+        Args: {
+          _habit_id: string
+          _missed_date: string
+          _user_shield_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
-      [_ in never]: never
+      habit_category:
+        | "coding"
+        | "reading"
+        | "gym"
+        | "running"
+        | "meditation"
+        | "fasting"
+        | "custom"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -536,6 +1031,16 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      habit_category: [
+        "coding",
+        "reading",
+        "gym",
+        "running",
+        "meditation",
+        "fasting",
+        "custom",
+      ],
+    },
   },
 } as const

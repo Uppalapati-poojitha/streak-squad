@@ -260,15 +260,16 @@ export function CheckInModal({ habit, onClose }: { habit: Habit; onClose: () => 
                     title={`+${result.creditsAwarded} Bond Credits`}
                     subtitle={result.milestone ? `Milestone bonus included!` : "Base reward"}
                   />
-                  {result.milestone && result.groupName && (
+                  {result.milestone && (result as any).clubName && (
                     <FlowNode
                       state="fire"
                       delay={0.6}
                       icon={<Sparkles className="h-5 w-5" />}
-                      title={`Joined ${result.groupName}`}
+                      title={`Joined ${(result as any).clubName}`}
                       subtitle={result.message ?? ""}
                     />
                   )}
+
                 </Flow>
               ) : (
                 <Flow>

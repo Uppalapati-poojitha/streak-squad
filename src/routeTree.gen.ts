@@ -12,14 +12,19 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedShieldsRouteImport } from './routes/_authenticated/shields'
 import { Route as AuthenticatedRewardsRouteImport } from './routes/_authenticated/rewards'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
+import { Route as AuthenticatedMissionsRouteImport } from './routes/_authenticated/missions'
 import { Route as AuthenticatedInboxRouteImport } from './routes/_authenticated/inbox'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedEconomyRouteImport } from './routes/_authenticated/economy'
 import { Route as AuthenticatedChallengesRouteImport } from './routes/_authenticated/challenges'
+import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 import { Route as AuthenticatedGroupsIndexRouteImport } from './routes/_authenticated/groups.index'
+import { Route as AuthenticatedRewardsResumeRouteImport } from './routes/_authenticated/rewards.resume'
 import { Route as AuthenticatedGroupsSlugRouteImport } from './routes/_authenticated/groups.$slug'
+import { Route as AuthenticatedClubsSlugRouteImport } from './routes/_authenticated/clubs.$slug'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -35,6 +40,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedShieldsRoute = AuthenticatedShieldsRouteImport.update({
+  id: '/shields',
+  path: '/shields',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedRewardsRoute = AuthenticatedRewardsRouteImport.update({
   id: '/rewards',
   path: '/rewards',
@@ -43,6 +53,11 @@ const AuthenticatedRewardsRoute = AuthenticatedRewardsRouteImport.update({
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMissionsRoute = AuthenticatedMissionsRouteImport.update({
+  id: '/missions',
+  path: '/missions',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedInboxRoute = AuthenticatedInboxRouteImport.update({
@@ -65,40 +80,67 @@ const AuthenticatedChallengesRoute = AuthenticatedChallengesRouteImport.update({
   path: '/challenges',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAchievementsRoute =
+  AuthenticatedAchievementsRouteImport.update({
+    id: '/achievements',
+    path: '/achievements',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGroupsIndexRoute =
   AuthenticatedGroupsIndexRouteImport.update({
     id: '/groups/',
     path: '/groups/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedRewardsResumeRoute =
+  AuthenticatedRewardsResumeRouteImport.update({
+    id: '/resume',
+    path: '/resume',
+    getParentRoute: () => AuthenticatedRewardsRoute,
+  } as any)
 const AuthenticatedGroupsSlugRoute = AuthenticatedGroupsSlugRouteImport.update({
   id: '/groups/$slug',
   path: '/groups/$slug',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedClubsSlugRoute = AuthenticatedClubsSlugRouteImport.update({
+  id: '/clubs/$slug',
+  path: '/clubs/$slug',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/achievements': typeof AuthenticatedAchievementsRoute
   '/challenges': typeof AuthenticatedChallengesRoute
   '/economy': typeof AuthenticatedEconomyRoute
   '/home': typeof AuthenticatedHomeRoute
   '/inbox': typeof AuthenticatedInboxRoute
+  '/missions': typeof AuthenticatedMissionsRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/rewards': typeof AuthenticatedRewardsRoute
+  '/rewards': typeof AuthenticatedRewardsRouteWithChildren
+  '/shields': typeof AuthenticatedShieldsRoute
+  '/clubs/$slug': typeof AuthenticatedClubsSlugRoute
   '/groups/$slug': typeof AuthenticatedGroupsSlugRoute
+  '/rewards/resume': typeof AuthenticatedRewardsResumeRoute
   '/groups/': typeof AuthenticatedGroupsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/achievements': typeof AuthenticatedAchievementsRoute
   '/challenges': typeof AuthenticatedChallengesRoute
   '/economy': typeof AuthenticatedEconomyRoute
   '/home': typeof AuthenticatedHomeRoute
   '/inbox': typeof AuthenticatedInboxRoute
+  '/missions': typeof AuthenticatedMissionsRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/rewards': typeof AuthenticatedRewardsRoute
+  '/rewards': typeof AuthenticatedRewardsRouteWithChildren
+  '/shields': typeof AuthenticatedShieldsRoute
+  '/clubs/$slug': typeof AuthenticatedClubsSlugRoute
   '/groups/$slug': typeof AuthenticatedGroupsSlugRoute
+  '/rewards/resume': typeof AuthenticatedRewardsResumeRoute
   '/groups': typeof AuthenticatedGroupsIndexRoute
 }
 export interface FileRoutesById {
@@ -106,13 +148,18 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/achievements': typeof AuthenticatedAchievementsRoute
   '/_authenticated/challenges': typeof AuthenticatedChallengesRoute
   '/_authenticated/economy': typeof AuthenticatedEconomyRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/inbox': typeof AuthenticatedInboxRoute
+  '/_authenticated/missions': typeof AuthenticatedMissionsRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
-  '/_authenticated/rewards': typeof AuthenticatedRewardsRoute
+  '/_authenticated/rewards': typeof AuthenticatedRewardsRouteWithChildren
+  '/_authenticated/shields': typeof AuthenticatedShieldsRoute
+  '/_authenticated/clubs/$slug': typeof AuthenticatedClubsSlugRoute
   '/_authenticated/groups/$slug': typeof AuthenticatedGroupsSlugRoute
+  '/_authenticated/rewards/resume': typeof AuthenticatedRewardsResumeRoute
   '/_authenticated/groups/': typeof AuthenticatedGroupsIndexRoute
 }
 export interface FileRouteTypes {
@@ -120,38 +167,53 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/achievements'
     | '/challenges'
     | '/economy'
     | '/home'
     | '/inbox'
+    | '/missions'
     | '/profile'
     | '/rewards'
+    | '/shields'
+    | '/clubs/$slug'
     | '/groups/$slug'
+    | '/rewards/resume'
     | '/groups/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/achievements'
     | '/challenges'
     | '/economy'
     | '/home'
     | '/inbox'
+    | '/missions'
     | '/profile'
     | '/rewards'
+    | '/shields'
+    | '/clubs/$slug'
     | '/groups/$slug'
+    | '/rewards/resume'
     | '/groups'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/achievements'
     | '/_authenticated/challenges'
     | '/_authenticated/economy'
     | '/_authenticated/home'
     | '/_authenticated/inbox'
+    | '/_authenticated/missions'
     | '/_authenticated/profile'
     | '/_authenticated/rewards'
+    | '/_authenticated/shields'
+    | '/_authenticated/clubs/$slug'
     | '/_authenticated/groups/$slug'
+    | '/_authenticated/rewards/resume'
     | '/_authenticated/groups/'
   fileRoutesById: FileRoutesById
 }
@@ -184,6 +246,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/shields': {
+      id: '/_authenticated/shields'
+      path: '/shields'
+      fullPath: '/shields'
+      preLoaderRoute: typeof AuthenticatedShieldsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/rewards': {
       id: '/_authenticated/rewards'
       path: '/rewards'
@@ -196,6 +265,13 @@ declare module '@tanstack/react-router' {
       path: '/profile'
       fullPath: '/profile'
       preLoaderRoute: typeof AuthenticatedProfileRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/missions': {
+      id: '/_authenticated/missions'
+      path: '/missions'
+      fullPath: '/missions'
+      preLoaderRoute: typeof AuthenticatedMissionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/inbox': {
@@ -226,12 +302,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChallengesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/achievements': {
+      id: '/_authenticated/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AuthenticatedAchievementsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/groups/': {
       id: '/_authenticated/groups/'
       path: '/groups'
       fullPath: '/groups/'
       preLoaderRoute: typeof AuthenticatedGroupsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/rewards/resume': {
+      id: '/_authenticated/rewards/resume'
+      path: '/resume'
+      fullPath: '/rewards/resume'
+      preLoaderRoute: typeof AuthenticatedRewardsResumeRouteImport
+      parentRoute: typeof AuthenticatedRewardsRoute
     }
     '/_authenticated/groups/$slug': {
       id: '/_authenticated/groups/$slug'
@@ -240,27 +330,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGroupsSlugRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/clubs/$slug': {
+      id: '/_authenticated/clubs/$slug'
+      path: '/clubs/$slug'
+      fullPath: '/clubs/$slug'
+      preLoaderRoute: typeof AuthenticatedClubsSlugRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRewardsRouteChildren {
+  AuthenticatedRewardsResumeRoute: typeof AuthenticatedRewardsResumeRoute
+}
+
+const AuthenticatedRewardsRouteChildren: AuthenticatedRewardsRouteChildren = {
+  AuthenticatedRewardsResumeRoute: AuthenticatedRewardsResumeRoute,
+}
+
+const AuthenticatedRewardsRouteWithChildren =
+  AuthenticatedRewardsRoute._addFileChildren(AuthenticatedRewardsRouteChildren)
+
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAchievementsRoute: typeof AuthenticatedAchievementsRoute
   AuthenticatedChallengesRoute: typeof AuthenticatedChallengesRoute
   AuthenticatedEconomyRoute: typeof AuthenticatedEconomyRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedInboxRoute: typeof AuthenticatedInboxRoute
+  AuthenticatedMissionsRoute: typeof AuthenticatedMissionsRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-  AuthenticatedRewardsRoute: typeof AuthenticatedRewardsRoute
+  AuthenticatedRewardsRoute: typeof AuthenticatedRewardsRouteWithChildren
+  AuthenticatedShieldsRoute: typeof AuthenticatedShieldsRoute
+  AuthenticatedClubsSlugRoute: typeof AuthenticatedClubsSlugRoute
   AuthenticatedGroupsSlugRoute: typeof AuthenticatedGroupsSlugRoute
   AuthenticatedGroupsIndexRoute: typeof AuthenticatedGroupsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAchievementsRoute: AuthenticatedAchievementsRoute,
   AuthenticatedChallengesRoute: AuthenticatedChallengesRoute,
   AuthenticatedEconomyRoute: AuthenticatedEconomyRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedInboxRoute: AuthenticatedInboxRoute,
+  AuthenticatedMissionsRoute: AuthenticatedMissionsRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedRewardsRoute: AuthenticatedRewardsRoute,
+  AuthenticatedRewardsRoute: AuthenticatedRewardsRouteWithChildren,
+  AuthenticatedShieldsRoute: AuthenticatedShieldsRoute,
+  AuthenticatedClubsSlugRoute: AuthenticatedClubsSlugRoute,
   AuthenticatedGroupsSlugRoute: AuthenticatedGroupsSlugRoute,
   AuthenticatedGroupsIndexRoute: AuthenticatedGroupsIndexRoute,
 }
@@ -276,13 +392,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

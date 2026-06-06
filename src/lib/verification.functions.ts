@@ -128,9 +128,12 @@ export const submitVerification = createServerFn({ method: "POST" })
       creditsAwarded: number;
       newStreak?: number;
       milestone?: number | null;
-      groupSlug?: string | null;
-      groupName?: string | null;
+      clubSlug?: string | null;
+      clubName?: string | null;
       message?: string | null;
       habitTitle: string;
+      category?: string;
+      bonus?: number;
+
     };
   });

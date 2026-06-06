@@ -9,7 +9,9 @@ import { AppShell } from "@/components/AppShell";
 import { Flow } from "@/components/flow/Flow";
 import { FlowNode } from "@/components/flow/FlowNode";
 import { CheckInModal } from "@/components/CheckInModal";
+import { DailyRewardBox } from "@/components/DailyRewardBox";
 import { listMyHabits, createHabit } from "@/lib/habits.functions";
+
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: HomePage,
@@ -40,10 +42,14 @@ function HomePage() {
 
   return (
     <AppShell title="Today's flow">
+      <div className="mb-4">
+        <DailyRewardBox />
+      </div>
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading your flow…</p>
       ) : (
         <Flow>
+
           <FlowNode
             state="done"
             icon={<Flame className="h-5 w-5" />}
