@@ -45,7 +45,7 @@ function ResumePage() {
       },
     }),
     onSuccess: (r) => {
-      setPreview({ id: r.id, template, ...r.payload });
+      setPreview({ id: r.id, ...r.payload, template });
       qc.invalidateQueries({ queryKey: ["resumes"] });
       toast.success("Resume generated!");
     },
