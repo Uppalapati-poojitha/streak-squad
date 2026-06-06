@@ -9,7 +9,9 @@ import { AppShell } from "@/components/AppShell";
 import { Flow } from "@/components/flow/Flow";
 import { FlowNode } from "@/components/flow/FlowNode";
 import { CheckInModal } from "@/components/CheckInModal";
+import { DailyRewardBox } from "@/components/DailyRewardBox";
 import { listMyHabits, createHabit } from "@/lib/habits.functions";
+
 
 export const Route = createFileRoute("/_authenticated/home")({
   component: HomePage,
