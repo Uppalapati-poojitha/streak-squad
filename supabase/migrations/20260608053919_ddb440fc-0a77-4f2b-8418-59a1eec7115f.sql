@@ -1,0 +1,2 @@
+CREATE POLICY "Delete own check-ins" ON public.check_ins FOR DELETE TO authenticated USING (user_id = auth.uid());
+CREATE POLICY "Delete own streaks" ON public.streaks FOR DELETE TO authenticated USING (user_id = auth.uid());
