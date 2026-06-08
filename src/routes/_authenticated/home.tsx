@@ -10,6 +10,7 @@ import { Flow } from "@/components/flow/Flow";
 import { FlowNode } from "@/components/flow/FlowNode";
 import { CheckInModal } from "@/components/CheckInModal";
 import { DailyRewardBox } from "@/components/DailyRewardBox";
+import { HabitMenu } from "@/components/HabitMenu";
 import { listMyHabits, createHabit } from "@/lib/habits.functions";
 
 
@@ -88,23 +89,26 @@ function HomePage() {
                       : "Earn your first day"
                   }
                   action={
-                    h.verifiedToday ? (
-                      <span className="rounded-full bg-mint/15 px-3 py-1.5 text-xs font-semibold text-mint">Verified</span>
-                    ) : h.pendingToday ? (
-                      <button
-                        onClick={() => setVerifying(h)}
-                        className="flex items-center gap-1 rounded-full bg-fire/15 px-3 py-1.5 text-xs font-semibold text-fire"
-                      >
-                        <Clock className="h-3 w-3" /> Resume
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setVerifying(h)}
-                        className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
-                      >
-                        Check in
-                      </button>
-                    )
+                    <div className="flex items-center gap-1">
+                      {h.verifiedToday ? (
+                        <span className="rounded-full bg-mint/15 px-3 py-1.5 text-xs font-semibold text-mint">Verified</span>
+                      ) : h.pendingToday ? (
+                        <button
+                          onClick={() => setVerifying(h)}
+                          className="flex items-center gap-1 rounded-full bg-fire/15 px-3 py-1.5 text-xs font-semibold text-fire"
+                        >
+                          <Clock className="h-3 w-3" /> Resume
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setVerifying(h)}
+                          className="rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground hover:opacity-90"
+                        >
+                          Check in
+                        </button>
+                      )}
+                      <HabitMenu habitId={h.id} habitTitle={h.title} />
+                    </div>
                   }
                 />
               );
