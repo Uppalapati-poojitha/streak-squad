@@ -61,6 +61,32 @@ export const createHabit = createServerFn({ method: "POST" })
     return row;
   });
 
+export const deleteHabit = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => z.object({ id: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const { data: habit, error: fetchErr } = await supabase
+      .from("habits")
+      .select("id, owner_id")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (fetchErr) throw new Error(fetchErr.message);
+    if (!habit || habit.owner_id !== userId) throw new Error("Habit not found");
+
+    await supabase.from("check_ins").delete().eq("habit_id", data.id).eq("user_id", userId);
+    await supabase.from("streaks").delete().eq("habit_id", data.id).eq("user_id", userId);
+
+    const { error: delErr } = await supabase
+      .from("habits")
+      .delete()
+      .eq("id", data.id)
+      .eq("owner_id", userId);
+    if (delErr) throw new Error(delErr.message);
+
+    return { ok: true, id: data.id };
+  });
+
 export const listPublicChallenges = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
