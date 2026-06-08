@@ -10,6 +10,7 @@ import { Flow } from "@/components/flow/Flow";
 import { FlowNode } from "@/components/flow/FlowNode";
 import { CheckInModal } from "@/components/CheckInModal";
 import { DailyRewardBox } from "@/components/DailyRewardBox";
+import { HabitMenu } from "@/components/HabitMenu";
 import { listMyHabits, createHabit } from "@/lib/habits.functions";
 
 
