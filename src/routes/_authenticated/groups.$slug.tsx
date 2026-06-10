@@ -1,7 +1,7 @@
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Flame, Send, Users } from "lucide-react";
+import { Flame, Send, Users, Globe } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { AppShell } from "@/components/AppShell";
 import { Flow } from "@/components/flow/Flow";
