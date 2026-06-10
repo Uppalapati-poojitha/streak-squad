@@ -52,7 +52,20 @@ function GroupDetail() {
             <div className="font-display text-lg font-bold">{data.group.name}</div>
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Users className="h-3 w-3" /> {data.memberCount} members
-            </div>
+      </div>
+
+      <Link
+        to="/community"
+        className="mb-4 flex items-center justify-between rounded-2xl border border-[#4f46e5]/20 bg-gradient-to-r from-[#4f46e5]/10 to-[#8b5cf6]/10 px-4 py-3 transition hover:border-[#4f46e5]/40"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#4f46e5] to-[#8b5cf6] text-white">
+            <Globe className="h-4 w-4" />
+          </div>
+          <div className="text-[13px] font-semibold">Open Global Community</div>
+        </div>
+        <span className="text-xs font-semibold text-[#4f46e5]">→</span>
+      </Link>
           </div>
         </div>
       </div>
