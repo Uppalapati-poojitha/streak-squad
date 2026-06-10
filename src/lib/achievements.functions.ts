@@ -5,12 +5,29 @@ export const listAchievements = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { supabase, userId } = context;
-    const [{ data: catalog }, { data: unlocks }] = await Promise.all([
+    const [{ data: catalog }, { data: unlocks }, { data: streaks }] = await Promise.all([
       supabase.from("achievements").select("*").order("tier"),
       supabase.from("user_achievements").select("achievement_id, unlocked_at").eq("user_id", userId),
+      supabase.from("streaks").select("current_streak, longest_streak").eq("user_id", userId),
     ]);
     const unlockMap = new Map((unlocks ?? []).map((u) => [u.achievement_id, u.unlocked_at]));
-    return (catalog ?? []).map((a) => ({ ...a, unlocked_at: unlockMap.get(a.id) ?? null }));
+    const bestStreak = (streaks ?? []).reduce((m, s) => Math.max(m, s.longest_streak ?? 0), 0);
+
+    return {
+      bestStreak,
+      items: (catalog ?? []).map((a) => {
+        const unlocked_at = unlockMap.get(a.id) ?? null;
+        // Derive progress for streak_X achievements from longest streak
+        const streakMatch = a.slug?.match(/^streak_(\d+)$/);
+        let target: number | null = null;
+        let progress: number | null = null;
+        if (streakMatch) {
+          target = Number(streakMatch[1]);
+          progress = Math.min(bestStreak, target);
+        }
+        return { ...a, unlocked_at, target, progress };
+      }),
+    };
   });
 
 export const getHeatmap = createServerFn({ method: "GET" })
