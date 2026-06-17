@@ -189,92 +189,141 @@ function AchievementsPage() {
               <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-[#8b5cf6]" />Legendary</span>
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {ordered.map((a, idx) => {
-              const Icon = ICONS[a.icon] ?? Trophy;
+              const Icon = SLUG_ICON[a.slug] ?? Trophy;
               const meta = TIER_META[a.tier] ?? TIER_META.bronze;
               const isUnlocked = !!a.unlocked_at;
               const progressPct = a.target && a.progress !== null
                 ? Math.round((a.progress / a.target) * 100)
                 : isUnlocked ? 100 : 0;
+              const justUnlocked = isUnlocked && a.target !== null && progressPct === 100;
 
               return (
                 <motion.div
                   key={a.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: Math.min(idx * 0.03, 0.4) }}
-                  whileHover={{ y: -4, scale: 1.02 }}
-                  className={`group relative overflow-hidden rounded-2xl border bg-surface p-4 transition-all ${
+                  initial={{ opacity: 0, y: 14, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ delay: Math.min(idx * 0.04, 0.5), type: "spring", stiffness: 260, damping: 22 }}
+                  whileHover={{ y: -6, scale: 1.025 }}
+                  className={`group relative overflow-hidden rounded-[22px] border-2 p-5 transition-all duration-300 backdrop-blur-xl ${
                     isUnlocked
-                      ? `border-transparent ring-1 ${meta.ring} ${meta.glow} hover:shadow-[0_0_60px_-6px_rgba(139,92,246,0.6)]`
-                      : "border-border/50"
+                      ? `${meta.border} bg-gradient-to-br ${meta.cardBg} ${meta.glow} ${meta.hoverGlow}`
+                      : "border-border/60 bg-gradient-to-br from-slate-50 via-white to-slate-100 hover:border-border"
                   }`}
                 >
-                  {/* Legendary shimmer */}
+                  {/* Soft rarity halo behind icon */}
+                  <div
+                    aria-hidden
+                    className={`pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full bg-gradient-to-br ${meta.gradient} ${
+                      isUnlocked ? "opacity-25" : "opacity-5"
+                    } blur-3xl transition-opacity group-hover:opacity-40`}
+                  />
+
+                  {/* Legendary shimmer sweep */}
                   {isUnlocked && a.tier === "platinum" && (
                     <motion.div
                       aria-hidden
-                      className="pointer-events-none absolute inset-0 opacity-40"
+                      className="pointer-events-none absolute inset-0 opacity-50"
                       animate={{ backgroundPosition: ["0% 50%", "200% 50%"] }}
-                      transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                      transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
                       style={{
-                        backgroundImage: "linear-gradient(110deg, transparent 30%, rgba(255,255,255,0.4) 50%, transparent 70%)",
+                        backgroundImage: "linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.55) 50%, transparent 65%)",
                         backgroundSize: "200% 100%",
                       }}
                     />
                   )}
 
                   <div className="relative">
-                    <div className={`mb-2 inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${meta.gradient} ${
-                      isUnlocked ? "" : "opacity-30 grayscale"
-                    }`}>
-                      {isUnlocked ? (
-                        <Icon className="h-6 w-6 text-white" />
-                      ) : (
-                        <Lock className="h-5 w-5 text-white" />
-                      )}
+                    {/* Large circular icon */}
+                    <div className="mb-3 flex items-start justify-between">
+                      <motion.div
+                        initial={justUnlocked ? { scale: 0.4, rotate: -25 } : false}
+                        animate={justUnlocked ? { scale: 1, rotate: 0 } : {}}
+                        transition={{ type: "spring", stiffness: 200, damping: 12, delay: 0.2 + idx * 0.03 }}
+                        className={`relative flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br ${meta.gradient} shadow-lg ring-4 ${
+                          isUnlocked ? `${meta.ring} shadow-[inset_0_2px_4px_rgba(255,255,255,0.4)]` : "ring-slate-200/60 opacity-50 grayscale"
+                        }`}
+                      >
+                        {isUnlocked ? (
+                          <Icon className="h-8 w-8 text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.25)]" strokeWidth={2.25} />
+                        ) : (
+                          <Lock className="h-7 w-7 text-white" strokeWidth={2.5} />
+                        )}
+                        {/* Sparkle pulse for unlocked */}
+                        {isUnlocked && (
+                          <motion.span
+                            aria-hidden
+                            className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-white shadow-md"
+                            animate={{ scale: [1, 1.15, 1] }}
+                            transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+                          >
+                            <Sparkles className="h-3 w-3 text-[#f59e0b]" />
+                          </motion.span>
+                        )}
+                      </motion.div>
+
+                      <span className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${meta.chip}`}>
+                        <span className={`h-1.5 w-1.5 rounded-full ${meta.dot}`} />
+                        {meta.rarity}
+                      </span>
                     </div>
 
-                    <span className={`mb-1.5 inline-block rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${meta.label}`}>
-                      {meta.rarity}
-                    </span>
-
-                    <h3 className={`text-sm font-bold leading-tight ${isUnlocked ? "text-foreground" : "text-muted-foreground"}`}>
+                    <h3 className={`font-display text-base font-bold leading-tight tracking-tight ${
+                      isUnlocked ? "text-foreground" : "text-muted-foreground"
+                    }`}>
                       {a.name}
                     </h3>
-                    <p className={`mt-0.5 text-[10px] leading-snug ${isUnlocked ? "text-muted-foreground" : "text-muted-foreground/70 blur-[0.3px]"}`}>
+                    <p className={`mt-1 text-xs leading-snug ${
+                      isUnlocked ? "text-muted-foreground" : "text-muted-foreground/70"
+                    }`}>
                       {a.description}
                     </p>
 
                     {/* Progress bar */}
                     {a.target !== null && (
-                      <div className="mt-3 space-y-1">
-                        <div className="flex justify-between text-[9px] font-semibold text-muted-foreground">
-                          <span className="tabular-nums">{a.progress ?? 0} / {a.target}</span>
-                          <span>{progressPct}%</span>
+                      <div className="mt-4 space-y-1.5">
+                        <div className="flex items-center justify-between text-[10px] font-bold">
+                          <span className="tabular-nums text-foreground/80">{a.progress ?? 0} / {a.target}</span>
+                          <span className={`tabular-nums ${isUnlocked ? "text-[#16a34a]" : "text-muted-foreground"}`}>{progressPct}%</span>
                         </div>
-                        <div className="h-1.5 overflow-hidden rounded-full bg-surface-2">
+                        <div className="relative h-2.5 overflow-hidden rounded-full bg-slate-200/70 ring-1 ring-inset ring-black/5">
                           <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${progressPct}%` }}
-                            transition={{ duration: 0.8, delay: 0.1 + idx * 0.02 }}
-                            className={`h-full rounded-full bg-gradient-to-r ${meta.gradient}`}
+                            transition={{ duration: 1, delay: 0.25 + idx * 0.03, ease: "easeOut" }}
+                            className={`h-full rounded-full bg-gradient-to-r ${meta.gradient} shadow-[inset_0_1px_0_rgba(255,255,255,0.5)]`}
                           />
+                          {progressPct > 0 && progressPct < 100 && (
+                            <motion.span
+                              aria-hidden
+                              className="absolute top-0 h-full w-8 bg-gradient-to-r from-transparent via-white/60 to-transparent"
+                              animate={{ x: ["-100%", "400%"] }}
+                              transition={{ duration: 2.4, repeat: Infinity, ease: "linear", delay: 1 }}
+                            />
+                          )}
                         </div>
                       </div>
                     )}
 
-                    {/* Earned date */}
-                    {isUnlocked && a.unlocked_at && (
-                      <p className="mt-2 flex items-center gap-1 text-[9px] font-semibold text-[#16a34a]">
-                        <CheckCircle2 className="h-2.5 w-2.5" />
-                        Earned {format(new Date(a.unlocked_at), "MMM d, yyyy")}
-                      </p>
-                    )}
-                    {!isUnlocked && a.target === null && (
-                      <p className="mt-2 text-[9px] font-semibold text-muted-foreground">Locked</p>
-                    )}
+                    {/* Footer status */}
+                    <div className="mt-3 flex items-center justify-between text-[10px] font-bold">
+                      {isUnlocked && a.unlocked_at ? (
+                        <span className="flex items-center gap-1 text-[#16a34a]">
+                          <CheckCircle2 className="h-3 w-3" />
+                          Earned {format(new Date(a.unlocked_at), "MMM d, yyyy")}
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-1 text-muted-foreground">
+                          <Lock className="h-3 w-3" /> Locked
+                        </span>
+                      )}
+                      {a.reward_xp ? (
+                        <span className="rounded-full bg-[#4f46e5]/10 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-[#4f46e5]">
+                          +{a.reward_xp} XP
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                 </motion.div>
               );
