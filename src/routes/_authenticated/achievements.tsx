@@ -3,21 +3,98 @@ import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { AppShell } from "@/components/AppShell";
 import { listAchievements, getHeatmap } from "@/lib/achievements.functions";
-import { Trophy, Flame, Shield, Star, Crown, CheckCircle2, FileText, Target, Heart, Sparkles, Lock } from "lucide-react";
+import {
+  Trophy, Shield, ShieldCheck, BadgeCheck, Target, CalendarDays,
+  Rocket, Briefcase, Swords, Castle, Award, Bird, Lock, Sparkles, CheckCircle2,
+} from "lucide-react";
 import { format } from "date-fns";
 
-const ICONS: Record<string, any> = {
-  flame: Flame, shield: Shield, star: Star, crown: Crown, "check-circle": CheckCircle2,
-  trophy: Trophy, "file-text": FileText, target: Target, heart: Heart, sparkles: Sparkles,
+// Map each achievement slug to its themed icon
+const SLUG_ICON: Record<string, any> = {
+  streak_7: Swords,
+  streak_30: CalendarDays,
+  streak_100: Award,
+  streak_365: ShieldCheck,
+  first_shield: Shield,
+  first_verify: BadgeCheck,
+  perfect_quiz: Target,
+  club_champion: Trophy,
+  five_categories: Castle,
+  resume_builder: Briefcase,
+  mission_master: Rocket,
+  social_butterfly: Bird,
 };
 
 type Rarity = "Common" | "Rare" | "Epic" | "Legendary";
 
-const TIER_META: Record<string, { rarity: Rarity; gradient: string; ring: string; glow: string; label: string }> = {
-  bronze:   { rarity: "Common",    gradient: "from-[#22c55e] to-[#16a34a]", ring: "ring-[#22c55e]/40", glow: "shadow-[0_0_40px_-8px_rgba(34,197,94,0.55)]",  label: "text-[#16a34a] bg-[#22c55e]/10 border-[#22c55e]/30" },
-  silver:   { rarity: "Rare",      gradient: "from-[#06b6d4] to-[#0891b2]", ring: "ring-[#06b6d4]/40", glow: "shadow-[0_0_40px_-8px_rgba(6,182,212,0.55)]",  label: "text-[#0891b2] bg-[#06b6d4]/10 border-[#06b6d4]/30" },
-  gold:     { rarity: "Epic",      gradient: "from-[#f59e0b] to-[#ea580c]", ring: "ring-[#f59e0b]/40", glow: "shadow-[0_0_40px_-8px_rgba(245,158,11,0.6)]",  label: "text-[#b45309] bg-[#f59e0b]/10 border-[#f59e0b]/30" },
-  platinum: { rarity: "Legendary", gradient: "from-[#8b5cf6] via-[#a855f7] to-[#4f46e5]", ring: "ring-[#8b5cf6]/50", glow: "shadow-[0_0_50px_-6px_rgba(139,92,246,0.7)]", label: "text-[#7c3aed] bg-[#8b5cf6]/10 border-[#8b5cf6]/30" },
+type RarityMeta = {
+  rarity: Rarity;
+  // strong icon + progress gradient
+  gradient: string;
+  // soft card background gradient
+  cardBg: string;
+  // border / ring tint
+  ring: string;
+  border: string;
+  // outer glow when unlocked
+  glow: string;
+  // rarity chip
+  chip: string;
+  // accent dot
+  dot: string;
+  // glow rgb for hover shadow
+  hoverGlow: string;
+};
+
+const TIER_META: Record<string, RarityMeta> = {
+  // Common → Green
+  bronze: {
+    rarity: "Common",
+    gradient: "from-[#34d399] via-[#22c55e] to-[#16a34a]",
+    cardBg: "from-[#ecfdf5] via-white to-[#f0fdf4]",
+    ring: "ring-[#22c55e]/45",
+    border: "border-[#22c55e]/40",
+    glow: "shadow-[0_18px_45px_-18px_rgba(34,197,94,0.55)]",
+    chip: "text-[#15803d] bg-[#22c55e]/15 border-[#22c55e]/35",
+    dot: "bg-[#22c55e]",
+    hoverGlow: "hover:shadow-[0_25px_60px_-15px_rgba(34,197,94,0.55)]",
+  },
+  // Rare → Blue + Cyan
+  silver: {
+    rarity: "Rare",
+    gradient: "from-[#3b82f6] via-[#06b6d4] to-[#0891b2]",
+    cardBg: "from-[#eff6ff] via-white to-[#ecfeff]",
+    ring: "ring-[#06b6d4]/45",
+    border: "border-[#06b6d4]/40",
+    glow: "shadow-[0_18px_45px_-18px_rgba(6,182,212,0.6)]",
+    chip: "text-[#0e7490] bg-[#06b6d4]/15 border-[#06b6d4]/35",
+    dot: "bg-[#06b6d4]",
+    hoverGlow: "hover:shadow-[0_25px_60px_-15px_rgba(59,130,246,0.55)]",
+  },
+  // Epic → Orange + Amber
+  gold: {
+    rarity: "Epic",
+    gradient: "from-[#fbbf24] via-[#f59e0b] to-[#ea580c]",
+    cardBg: "from-[#fffbeb] via-white to-[#fff7ed]",
+    ring: "ring-[#f59e0b]/55",
+    border: "border-[#f59e0b]/45",
+    glow: "shadow-[0_20px_50px_-18px_rgba(245,158,11,0.65)]",
+    chip: "text-[#b45309] bg-[#f59e0b]/15 border-[#f59e0b]/40",
+    dot: "bg-[#f59e0b]",
+    hoverGlow: "hover:shadow-[0_28px_65px_-15px_rgba(245,158,11,0.6)]",
+  },
+  // Legendary → Purple + Gold
+  platinum: {
+    rarity: "Legendary",
+    gradient: "from-[#8b5cf6] via-[#a855f7] to-[#fbbf24]",
+    cardBg: "from-[#faf5ff] via-white to-[#fffbeb]",
+    ring: "ring-[#a855f7]/60",
+    border: "border-[#a855f7]/50",
+    glow: "shadow-[0_22px_55px_-16px_rgba(168,85,247,0.7)]",
+    chip: "text-[#6d28d9] bg-gradient-to-r from-[#8b5cf6]/15 to-[#fbbf24]/15 border-[#a855f7]/40",
+    dot: "bg-gradient-to-r from-[#a855f7] to-[#fbbf24]",
+    hoverGlow: "hover:shadow-[0_32px_70px_-14px_rgba(168,85,247,0.65)]",
+  },
 };
 
 export const Route = createFileRoute("/_authenticated/achievements")({ component: AchievementsPage });
