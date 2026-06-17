@@ -65,7 +65,7 @@ function CommunityPage() {
         <AnimatePresence initial={false}>
           {(data?.messages ?? []).map((m) => {
             const author = data?.authors[m.author_id];
-            const name = author?.display_name ?? "Someone";
+            const name = author?.display_name ?? author?.username ?? "Member";
             return (
               <motion.div
                 key={m.id}
