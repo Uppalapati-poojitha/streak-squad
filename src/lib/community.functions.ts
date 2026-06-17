@@ -15,15 +15,15 @@ export const listGlobalMessages = createServerFn({ method: "GET" })
 
     const rows = (messages ?? []).slice().reverse();
     const authorIds = Array.from(new Set(rows.map((m) => m.author_id)));
-    if (authorIds.length === 0) return { messages: rows, authors: {} as Record<string, { display_name: string | null; avatar_url: string | null }> };
+    if (authorIds.length === 0) return { messages: rows, authors: {} as Record<string, { display_name: string | null; username: string | null; avatar_url: string | null }> };
 
     const { data: profiles } = await supabase
       .from("profiles")
-      .select("id, display_name, avatar_url")
+      .select("id, display_name, username, avatar_url")
       .in("id", authorIds);
 
-    const authors: Record<string, { display_name: string | null; avatar_url: string | null }> = {};
-    for (const p of profiles ?? []) authors[p.id] = { display_name: p.display_name, avatar_url: p.avatar_url };
+    const authors: Record<string, { display_name: string | null; username: string | null; avatar_url: string | null }> = {};
+    for (const p of profiles ?? []) authors[p.id] = { display_name: p.display_name, username: p.username, avatar_url: p.avatar_url };
     return { messages: rows, authors };
   });
 
