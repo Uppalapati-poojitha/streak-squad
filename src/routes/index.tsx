@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { Flame, Dumbbell, Sparkles, Users, Bell } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Flow } from "@/components/flow/Flow";
 import { FlowNode } from "@/components/flow/FlowNode";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
