@@ -87,13 +87,37 @@ function Landing() {
 }
 
 function ReferenceFlow() {
+  const [name, setName] = useState("User");
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("display_name, username")
+        .eq("id", user.id)
+        .maybeSingle();
+      const meta = user.user_metadata ?? {};
+      const resolved =
+        profile?.display_name ||
+        profile?.username ||
+        meta.full_name ||
+        meta.name ||
+        (user.email ? user.email.split("@")[0] : null) ||
+        "User";
+      if (!cancelled) setName(resolved);
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <Flow>
-      <FlowNode delay={0} icon={<Dumbbell className="h-5 w-5" />} title="Venu checks in at gym" subtitle="Today, 7:14am" />
+      <FlowNode delay={0} icon={<Dumbbell className="h-5 w-5" />} title={`${name} checks in at gym`} subtitle="Today, 7:14am" />
       <FlowNode delay={0.5} state="active" icon={<Flame className="h-5 w-5" />} title="Streak becomes 24 days" subtitle="+1 from yesterday" />
       <FlowNode delay={1} state="fire" icon={<Sparkles className="h-5 w-5" />} title="Achievement detected" subtitle="Closing in on Day 30" />
       <FlowNode delay={1.5} state="done" icon={<Bell className="h-5 w-5" />} title="Notification sent to group" subtitle="30-Day Club · 248 members" />
-      <FlowNode delay={2} state="done" icon={<Flame className="h-5 w-5" />} title="🔥 Venu completed Day 24 of his gym streak!" subtitle="System message · just now" />
+      <FlowNode delay={2} state="done" icon={<Flame className="h-5 w-5" />} title={`🔥 ${name} completed Day 24 of their gym streak!`} subtitle="System message · just now" />
     </Flow>
   );
 }
