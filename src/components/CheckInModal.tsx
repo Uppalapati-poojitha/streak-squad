@@ -5,6 +5,7 @@ import { X, Sparkles, Loader2, CheckCircle2, XCircle, Flame, Coins } from "lucid
 import { toast } from "sonner";
 import { Flow } from "@/components/flow/Flow";
 import { FlowNode } from "@/components/flow/FlowNode";
+import { ShareDialog } from "@/components/ShareDialog";
 import { startCheckIn, submitVerification } from "@/lib/verification.functions";
 
 type Habit = { id: string; title: string; category: string };
