@@ -154,5 +154,6 @@ export function ShareDialog({ title, text, url, children, triggerClassName }: Sh
         </button>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
