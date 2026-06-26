@@ -308,7 +308,7 @@ function AchievementsPage() {
                     )}
 
                     {/* Footer status */}
-                    <div className="mt-3 flex items-center justify-between text-[10px] font-bold">
+                    <div className="mt-3 flex items-center justify-between gap-2 text-[10px] font-bold">
                       {isUnlocked && a.unlocked_at ? (
                         <span className="flex items-center gap-1 text-[#16a34a]">
                           <CheckCircle2 className="h-3 w-3" />
@@ -319,11 +319,19 @@ function AchievementsPage() {
                           <Lock className="h-3 w-3" /> Locked
                         </span>
                       )}
-                      {a.reward_xp ? (
-                        <span className="rounded-full bg-[#4f46e5]/10 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-[#4f46e5]">
-                          +{a.reward_xp} XP
-                        </span>
-                      ) : null}
+                      <div className="flex items-center gap-1.5">
+                        {a.reward_xp ? (
+                          <span className="rounded-full bg-[#4f46e5]/10 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-wider text-[#4f46e5]">
+                            +{a.reward_xp} XP
+                          </span>
+                        ) : null}
+                        {isUnlocked && (
+                          <ShareDialog
+                            title={`I unlocked ${a.name} on MomentumOS`}
+                            text={`🏆 I just unlocked the "${a.name}" badge on MomentumOS — ${a.description}`}
+                          />
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
