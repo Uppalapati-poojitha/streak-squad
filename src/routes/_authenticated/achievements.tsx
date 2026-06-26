@@ -8,6 +8,7 @@ import {
   Rocket, Briefcase, Swords, Castle, Award, Bird, Lock, Sparkles, CheckCircle2,
 } from "lucide-react";
 import { format } from "date-fns";
+import { ShareDialog } from "@/components/ShareDialog";
 
 // Map each achievement slug to its themed icon
 const SLUG_ICON: Record<string, any> = {
