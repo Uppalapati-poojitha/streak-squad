@@ -5,6 +5,7 @@ import { X, Sparkles, Loader2, CheckCircle2, XCircle, Flame, Coins } from "lucid
 import { toast } from "sonner";
 import { Flow } from "@/components/flow/Flow";
 import { FlowNode } from "@/components/flow/FlowNode";
+import { ShareDialog } from "@/components/ShareDialog";
 import { startCheckIn, submitVerification } from "@/lib/verification.functions";
 
 type Habit = { id: string; title: string; category: string };
@@ -289,6 +290,15 @@ export function CheckInModal({ habit, onClose }: { habit: Habit; onClose: () => 
                 </Flow>
               )}
 
+              {result.status === "verified" && (
+                <ShareDialog
+                  title={`Day ${result.newStreak} of ${result.habitTitle} 🔥`}
+                  text={`🔥 I just completed Day ${result.newStreak} of my ${result.habitTitle} streak on MomentumOS!${
+                    result.milestone ? ` Unlocked a new milestone 🏆` : ""
+                  }`}
+                  triggerClassName="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-[#4f46e5]/30 bg-white py-3 text-sm font-semibold text-[#4f46e5] transition hover:bg-[#4f46e5]/5"
+                />
+              )}
               <button
                 onClick={onClose}
                 className="w-full rounded-xl bg-primary py-3 text-sm font-semibold text-primary-foreground"
