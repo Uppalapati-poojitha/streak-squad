@@ -85,26 +85,31 @@ export function ShareDialog({ title, text, url, children, triggerClassName }: Sh
     },
   ];
 
+  const trigger = children ? (
+    <span onClick={() => setOpen(true)} className="contents">
+      {children}
+    </span>
+  ) : (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleNativeShare();
+      }}
+      className={
+        triggerClassName ??
+        "inline-flex items-center gap-1.5 rounded-full border border-[#4f46e5]/30 bg-white/80 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#4f46e5] shadow-sm transition hover:bg-[#4f46e5]/10"
+      }
+    >
+      <Share2 className="h-3 w-3" /> Share
+    </button>
+  );
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children ?? (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleNativeShare();
-            }}
-            className={
-              triggerClassName ??
-              "inline-flex items-center gap-1.5 rounded-full border border-[#4f46e5]/30 bg-white/80 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[#4f46e5] shadow-sm transition hover:bg-[#4f46e5]/10"
-            }
-          >
-            <Share2 className="h-3 w-3" /> Share
-          </button>
-        )}
-      </DialogTrigger>
+    <>
+      {trigger}
+      <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="font-display">Share your achievement</DialogTitle>
