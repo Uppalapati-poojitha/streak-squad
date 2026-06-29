@@ -4,6 +4,7 @@ import { User, Flame, Users, Sparkles, LogOut } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { Flow } from "@/components/flow/Flow";
 import { FlowNode } from "@/components/flow/FlowNode";
+import { ShareDialog } from "@/components/ShareDialog";
 import { getMyProfile } from "@/lib/groups.functions";
 import { supabase } from "@/integrations/supabase/client";
 
