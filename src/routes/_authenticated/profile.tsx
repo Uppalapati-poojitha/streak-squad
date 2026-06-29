@@ -29,9 +29,15 @@ function ProfilePage() {
     <AppShell
       title="Profile"
       right={
-        <button onClick={signOut} className="flex h-9 w-9 items-center justify-center rounded-full bg-surface hover:bg-surface-2" title="Sign out">
-          <LogOut className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <ShareDialog
+            title={`${name} on MomentumOS`}
+            text={`🚀 I'm building consistency on MomentumOS — ${data.stats.longestStreak}-day best streak across ${data.stats.habits} habit${data.stats.habits === 1 ? "" : "s"} and ${data.stats.groups} club${data.stats.groups === 1 ? "" : "s"}. Join me!`}
+          />
+          <button onClick={signOut} className="flex h-9 w-9 items-center justify-center rounded-full bg-surface hover:bg-surface-2" title="Sign out">
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
       }
     >
       <Flow>
