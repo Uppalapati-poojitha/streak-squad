@@ -11,8 +11,8 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "ConsistencyOS — Turn habits into streaks" },
       { name: "description", content: "Check in daily, build streaks, auto-join milestone clubs, and get the group cheering you on." },
-      { property: "og:title", content: "ConsistencyOS" },
-      { property: "og:description", content: "Streaks. Clubs. Consistency." },
+      { property: "og:title", content: "ConsistencyOS — Turn habits into streaks" },
+      { property: "og:description", content: "Check in daily, build streaks, auto-join milestone clubs, and get the group cheering you on." },
     ],
   }),
   component: Landing,
