@@ -898,6 +898,10 @@ export type Database = {
         Returns: Json
       }
       expire_shields: { Args: never; Returns: number }
+      is_group_member: {
+        Args: { _group_id: string; _user_id: string }
+        Returns: boolean
+      }
       purchase_shield: { Args: { _shield_id: string }; Returns: Json }
       redeem_reward: {
         Args: { _payload?: Json; _reward_id: string }
