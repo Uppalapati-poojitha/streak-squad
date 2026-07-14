@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Share2, Check, Copy, MessageCircle, Twitter, Facebook, Linkedin, Send } from "lucide-react";
 
 type ShareDialogProps = {
@@ -30,13 +30,22 @@ export function ShareDialog({ title, text, url, children, triggerClassName }: Sh
   };
 
   const handleNativeShare = async () => {
-    if (typeof navigator !== "undefined" && (navigator as any).share) {
+    // Skip native share inside iframes (e.g. Lovable preview) — the browser
+    // blocks it with a "permission denied / not allowed" error unless the
+    // parent frame sets `allow="web-share"`. Go straight to the fallback sheet.
+    const inIframe = typeof window !== "undefined" && window.self !== window.top;
+    const canNativeShare =
+      !inIframe &&
+      typeof navigator !== "undefined" &&
+      typeof (navigator as any).share === "function";
+
+    if (canNativeShare) {
       try {
         await (navigator as any).share({ title, text, url: shareUrl });
         setOpen(false);
         return;
       } catch {
-        /* user cancelled or unsupported — fall back to dialog */
+        /* user cancelled or blocked — fall back to dialog */
       }
     }
     setOpen(true);
@@ -113,6 +122,9 @@ export function ShareDialog({ title, text, url, children, triggerClassName }: Sh
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="font-display">Share your achievement</DialogTitle>
+          <DialogDescription>
+            Pick a channel to share to, or copy the message to your clipboard.
+          </DialogDescription>
         </DialogHeader>
         <div className="rounded-2xl border border-border bg-surface p-3 text-sm text-foreground/90">
           {text}
