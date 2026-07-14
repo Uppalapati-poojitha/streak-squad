@@ -30,13 +30,22 @@ export function ShareDialog({ title, text, url, children, triggerClassName }: Sh
   };
 
   const handleNativeShare = async () => {
-    if (typeof navigator !== "undefined" && (navigator as any).share) {
+    // Skip native share inside iframes (e.g. Lovable preview) — the browser
+    // blocks it with a "permission denied / not allowed" error unless the
+    // parent frame sets `allow="web-share"`. Go straight to the fallback sheet.
+    const inIframe = typeof window !== "undefined" && window.self !== window.top;
+    const canNativeShare =
+      !inIframe &&
+      typeof navigator !== "undefined" &&
+      typeof (navigator as any).share === "function";
+
+    if (canNativeShare) {
       try {
         await (navigator as any).share({ title, text, url: shareUrl });
         setOpen(false);
         return;
       } catch {
-        /* user cancelled or unsupported — fall back to dialog */
+        /* user cancelled or blocked — fall back to dialog */
       }
     }
     setOpen(true);
