@@ -133,10 +133,11 @@ export function ShareDialog({ title, text, url, children, triggerClassName }: Sh
           {channels.map((c) => {
             const Icon = c.icon;
             return (
-              <button
+              <a
                 key={c.label}
-                type="button"
-                onClick={() => openLink(c.href)}
+                href={c.href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="group flex flex-col items-center gap-1.5 rounded-2xl border border-border bg-white p-3 transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <span
@@ -145,7 +146,7 @@ export function ShareDialog({ title, text, url, children, triggerClassName }: Sh
                   <Icon className="h-5 w-5" />
                 </span>
                 <span className="text-[11px] font-semibold text-foreground/80">{c.label}</span>
-              </button>
+              </a>
             );
           })}
         </div>
