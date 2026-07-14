@@ -122,6 +122,9 @@ export function ShareDialog({ title, text, url, children, triggerClassName }: Sh
       <DialogContent className="max-w-sm">
         <DialogHeader>
           <DialogTitle className="font-display">Share your achievement</DialogTitle>
+          <DialogDescription>
+            Pick a channel to share to, or copy the message to your clipboard.
+          </DialogDescription>
         </DialogHeader>
         <div className="rounded-2xl border border-border bg-surface p-3 text-sm text-foreground/90">
           {text}
