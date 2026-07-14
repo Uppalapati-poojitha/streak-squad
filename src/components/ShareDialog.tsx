@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Share2, Check, Copy, MessageCircle, Twitter, Facebook, Linkedin, Send } from "lucide-react";
 
 type ShareDialogProps = {
